@@ -16,5 +16,5 @@ void Vbo::Bind() const {
 
 void Vbo::AddLayoutElement(const unsigned int count, const unsigned int type) {
 	layout_elements.push_back({ count, type, GL_FALSE });
-	stride += Common::GetGlTypeSize(type);
+	stride += count * Common::GetGlTypeSize(type);
 }

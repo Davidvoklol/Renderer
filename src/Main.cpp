@@ -44,10 +44,10 @@ int main(void) {
 
 
 	float vertices[] = {
-	    -0.5, -0.5,
-	    -0.5,  0.5,
-	     0.5,  0.5,
-	     0.5, -0.5
+	    -0.5, -0.5, 1.0, 0.0, 0.0,
+	    -0.5,  0.5, 0.0, 1.0, 0.0,
+	     0.5,  0.5, 0.0, 0.0, 1.0,
+	     0.5, -0.5, 1.0, 1.0, 1.0
 	};
 
 	unsigned int indices[] = {
@@ -60,6 +60,7 @@ int main(void) {
 
 	Vbo vbo(sizeof(vertices), vertices, GL_STATIC_DRAW);
 	vbo.AddLayoutElement(2, GL_FLOAT);
+	vbo.AddLayoutElement(3, GL_FLOAT);
 
 	Ibo ib(sizeof(indices), indices, GL_STATIC_DRAW, GL_UNSIGNED_INT);
 
