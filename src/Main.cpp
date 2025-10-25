@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Common.hpp"
+
 int main(void) {
     GLFWwindow* window;
 
@@ -23,7 +25,7 @@ int main(void) {
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize OpenGL context\n";
+        std::cerr << "Failed to initialize OpenGL context\n";
         return -1;
     }
 	std::cout << glGetString(GL_VERSION) << "\n";
