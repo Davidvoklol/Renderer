@@ -1,8 +1,19 @@
+#include "Common.hpp"
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <string>
 
-#include "Common.hpp"
+#include "Renderer.hpp"
+#include "Vbo.hpp"
+#include "Vao.hpp"
+#include "Ibo.hpp"
+#include "Shader.hpp"
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
 
 int main(void) {
     GLFWwindow* window;
@@ -23,18 +34,50 @@ int main(void) {
     }
 
     glfwMakeContextCurrent(window);
-
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize OpenGL context\n";
         return -1;
     }
 	std::cout << glGetString(GL_VERSION) << "\n";
 
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+	float vertices[] = {
+	    -0.5, -0.5,
+	    -0.5,  0.5,
+	     0.5,  0.5,
+	     0.5, -0.5
+	};
+
+	unsigned int indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	Vao vao;
+	vao.Bind();
+
+	Vbo vbo(sizeof(vertices), vertices, GL_STATIC_DRAW);
+	vbo.AddLayoutElement(2, GL_FLOAT);
+
+	Ibo ib(sizeof(indices), indices, GL_STATIC_DRAW, GL_UNSIGNED_INT);
+
+	vao.AddVboBinding(vbo);
+
+	std::string path = Common::GetProgramPath();
+
+	Shader shader(path + "/res/shaders/vertex.glsl", path + "/res/shaders/fragment.glsl");
+	shader.Bind();
+
+	glClearColor(0.1, 0.1, 0.1, 1.0);
+    while (!glfwWindowShouldClose(window)) {
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
     }
 
     glfwTerminate();

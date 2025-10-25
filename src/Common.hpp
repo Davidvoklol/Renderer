@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <string>
+#include <glad/glad.h>
+#include <filesystem>
 
 #if defined(__linux__)
 #include <unistd.h>
@@ -17,4 +19,5 @@
 class Common {
 	public:
 		static std::string GetProgramPath();
+		static unsigned int GetGlTypeSize(const unsigned int type);
 };
