@@ -77,3 +77,15 @@ Shader::~Shader() {
 void Shader::Bind() const {
 	Renderer::BindShader(id);
 }
+
+unsigned int Shader::GetUniformLocation(const char* name) const {
+	if (uniform_cache.find(name) == uniform_cache.end()) 
+		uniform_cache[name] = glGetUniformLocation(id, name);
+	return uniform_cache[name];
+}
+
+void Shader::SetUniformMat4(const char* name, const glm::mat4& value) const {
+	Bind();
+	unsigned int loc = GetUniformLocation(name);
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+}
