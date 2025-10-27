@@ -1,7 +1,19 @@
 #include "Camera.hpp"
 #include "glm/fwd.hpp"
+#include "glm/geometric.hpp"
+#include <iostream>
 
-Camera::Camera() { }
+Camera::Camera() {
+	yaw = 0;
+	pitch = 0;
+    right = glm::normalize(glm::cross(direction, glm::vec3(0, 1, 0)));
+    up = glm::cross(right, direction);
+	direction = glm::normalize(glm::vec3(
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),			
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+			));
+}
 Camera::~Camera() { }
 
 void Camera::SetOrthographicProjection(const float left, const float right, const float bottom, const float top) {
@@ -23,7 +35,6 @@ glm::mat4 Camera::GetViewMatrix() {
 		position_cache = position;
 		direction_cache = direction;
 	}
-
 	return view;
 }
 
@@ -36,8 +47,10 @@ glm::vec3 Camera:: GetRightVec() const {
 }
 
 void Camera::Move(const glm::vec3& vector) {
-	position += vector;
-};
+    position += vector.z * direction;
+    position += vector.x * right;
+    position += vector.y * up;
+}
 
 void Camera::MoveTo(const glm::vec3& position) {
 	this->position = position;
@@ -45,23 +58,30 @@ void Camera::MoveTo(const glm::vec3& position) {
 
 void Camera::LookAt(const glm::vec3& center) {
 	direction = glm::normalize(center - position);
+
+	pitch = glm::degrees(asin(direction.y));
+    yaw = glm::degrees(atan2(direction.z, direction.x));
+
+	right = glm::normalize(glm::cross(direction, glm::vec3(0,1,0)));
+	up = glm::cross(right, direction);
 }
 
-void Camera::TurnYaw(const float angle) {
-	if (angle == 0) return;
+void Camera::Turn(const float pitch_angle, const float yaw_angle) {
+	if (pitch_angle == 0 && yaw_angle == 0) return;
 
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angle, up);
-    direction = glm::normalize(glm::vec3(rot * glm::vec4(direction, 0.0f)));
-    right = glm::normalize(glm::cross(direction, up));
-}
 
-void Camera::TurnPitch(float angle) {
-	if (angle == 0) return;
+	yaw += yaw_angle;
 
-	float new_pitch = glm::clamp(pitch + angle, min_pitch, max_pitch);
-	angle = new_pitch - pitch;
-	pitch = new_pitch;
+	pitch += pitch_angle;
+	if(pitch > 89.0f) pitch =  89.0f;
+	if(pitch < -89.0f) pitch = -89.0f;
 
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), angle, right);
-    direction = glm::normalize(glm::vec3(rot * glm::vec4(direction, 0.0f)));
+	direction = glm::normalize(glm::vec3(
+			cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+			sin(glm::radians(pitch)),			
+			sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+			));
+
+	if (yaw != 0) right = glm::normalize(glm::cross(direction, glm::vec3(0, 1, 0)));
+	if (pitch != 0) up = glm::normalize(glm::cross(right, direction));
 }

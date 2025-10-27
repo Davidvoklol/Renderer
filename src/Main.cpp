@@ -1,10 +1,11 @@
-#include "Common.hpp"
+#include <cstddef>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 
+#include "Common.hpp"
 #include "Renderer.hpp"
 #include "Vbo.hpp"
 #include "Vao.hpp"
@@ -12,12 +13,22 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 #include "Event.hpp"
+#include "glm/fwd.hpp"
+
+struct Cursor {
+	glm::vec2 position = glm::vec2(-1, -1);
+	glm::vec2 offset = glm::vec2(0, 0);
+};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-Camera camera;
-float CamSpeed = 1.0;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
+
+Cursor cursor;
+Camera camera;
+float CamSpeed = 2.5;
+float CamSensitivity = 0.1f;
+glm::vec3 CamMovement = glm::vec3(0);
 
 int main(void) {
 	float WIDTH = 1280, HEIGHT = 720;
@@ -41,7 +52,8 @@ int main(void) {
 
     glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetKeyCallback(window, Event::TriggerCallbacks);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
 	
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize OpenGL context\n";
@@ -79,7 +91,7 @@ int main(void) {
 	vao.AddVboBinding(vbo);
 
 	camera.MoveTo(glm::vec3(0, 0, -5));
-	camera.LookAt(glm::vec3(0));
+	camera.LookAt(glm::vec3(0, 0, 0));
 	camera.SetPerspectiveProjection(45, WIDTH / HEIGHT, 0.1, 100.0);
 
 	std::string path = Common::GetProgramPath();
@@ -90,10 +102,18 @@ int main(void) {
 
 	glm::mat4 view_cache;
 
+	float last_time = glfwGetTime();
+	float delta_time = 0;
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 	while (!glfwWindowShouldClose(window)) {
 		Renderer::Clear(GL_COLOR_BUFFER_BIT);
 
+		float now = glfwGetTime();
+		delta_time = now - last_time;
+		last_time = now;
+
+		camera.Move(CamMovement * CamSpeed * delta_time);
 		glm::mat4 view = camera.GetViewMatrix();
 		if (view != view_cache) {
 			shader.SetUniformMat4("view", view);
@@ -114,22 +134,43 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	glm::vec3 cam_dir = camera.GetDirection();
+	glm::vec3 cam_right = camera.GetRightVec();
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		glm::vec3 cam_dir = camera.GetDirection();
-		glm::vec3 cam_right = camera.GetRightVec();
+		float x = CamMovement.x,
+			  y = CamMovement.y,
+			  z = CamMovement.z;
+		switch (key) {
+			case GLFW_KEY_W: if (z !=  1) CamMovement.z +=  1; break;
+			case GLFW_KEY_S: if (z != -1) CamMovement.z += -1; break;
+			case GLFW_KEY_A: if (x != -1) CamMovement.x += -1; break;
+			case GLFW_KEY_D: if (x !=  1) CamMovement.x +=  1; break;
+			case GLFW_KEY_SPACE: if (y != 1) CamMovement.y += 1; break;
+			case GLFW_KEY_LEFT_CONTROL: if (y != -1) CamMovement.y += -1; break;
+		}
+	} else if (action == GLFW_RELEASE) {
 		switch (key) {
 			case GLFW_KEY_W:
-				camera.Move(cam_dir * CamSpeed);
-				break;
-			case GLFW_KEY_S:
-				camera.Move(cam_dir * -CamSpeed);
-				break;
+			case GLFW_KEY_S: CamMovement.z = 0; break;
 			case GLFW_KEY_A:
-				camera.Move(cam_right * -CamSpeed);
-				break;
-			case GLFW_KEY_D:
-				camera.Move(cam_right * CamSpeed);
-				break;
+			case GLFW_KEY_D: CamMovement.x = 0; break;
+			case GLFW_KEY_SPACE:
+			case GLFW_KEY_LEFT_CONTROL: CamMovement.y = 0; break;
 		}
 	}
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+	glm::vec2 new_pos = glm::vec2(xpos, ypos);
+	if (cursor.position.x != -1) {
+		cursor.offset = new_pos - cursor.position;
+
+		// (0, 0) is top left
+
+		float yaw = cursor.offset.x * CamSensitivity;		
+		float pitch = -cursor.offset.y * CamSensitivity;
+
+		camera.Turn(pitch, yaw);
+	}
+	cursor.position = new_pos;
 }
