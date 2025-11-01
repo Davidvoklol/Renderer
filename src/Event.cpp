@@ -1,6 +1,10 @@
 #include "Event.hpp"
 #include "GLFW/glfw3.h"
 
+using KeyCallbackType = void (*)(GLFWwindow*, int, int, int, int);
+
+std::vector<KeyCallbackType> Event::key_callbacks;
+
 void Event::TriggerCallbacks(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	for (KeyCallbackType func : key_callbacks) {
 		func(window, key, scancode, action, mods);

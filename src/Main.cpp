@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
 
 #include "Common.hpp"
 #include "Renderer.hpp"
@@ -12,8 +13,6 @@
 #include "Ibo.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
-#include "Event.hpp"
-#include "glm/fwd.hpp"
 
 struct Cursor {
 	glm::vec2 position = glm::vec2(-1, -1);
@@ -68,16 +67,59 @@ int main(void) {
 	};
 
 	struct Vertex vertices[] = {
-		{ { -0.5, -0.5, 1.0 }, { 1.0, 0.0, 0.0 } },
-		{ { -0.5,  0.5, 1.0 }, { 0.0, 1.0, 0.0 } },
-	    { {  0.5,  0.5, 1.0 }, { 0.0, 0.0, 1.0 } },
-	    { {  0.5, -0.5, 1.0 }, { 1.0, 1.0, 1.0 } }
+		// Front
+		{ {-0.5f, -0.5f,  0.5f}, {1, 0, 0} },
+		{ {-0.5f,  0.5f,  0.5f}, {1, 0, 0} },
+		{ { 0.5f,  0.5f,  0.5f}, {1, 0, 0} },
+		{ { 0.5f, -0.5f,  0.5f}, {1, 0, 0} },
+
+		// Back
+		{ {-0.5f, -0.5f, -0.5f}, {0, 1, 0} },
+		{ {-0.5f,  0.5f, -0.5f}, {0, 1, 0} },
+		{ { 0.5f,  0.5f, -0.5f}, {0, 1, 0} },
+		{ { 0.5f, -0.5f, -0.5f}, {0, 1, 0} },
+
+		// Left
+		{ {-0.5f, -0.5f, -0.5f}, {0, 0, 1} },
+		{ {-0.5f,  0.5f, -0.5f}, {0, 0, 1} },
+		{ {-0.5f,  0.5f,  0.5f}, {0, 0, 1} },
+		{ {-0.5f, -0.5f,  0.5f}, {0, 0, 1} },
+
+		// Right
+		{ { 0.5f, -0.5f, -0.5f}, {1, 1, 0} },
+		{ { 0.5f,  0.5f, -0.5f}, {1, 1, 0} },
+		{ { 0.5f,  0.5f,  0.5f}, {1, 1, 0} },
+		{ { 0.5f, -0.5f,  0.5f}, {1, 1, 0} },
+
+		// Top
+		{ {-0.5f,  0.5f, -0.5f}, {0, 1, 1} },
+		{ {-0.5f,  0.5f,  0.5f}, {0, 1, 1} },
+		{ { 0.5f,  0.5f,  0.5f}, {0, 1, 1} },
+		{ { 0.5f,  0.5f, -0.5f}, {0, 1, 1} },
+
+		// Bottom
+		{ {-0.5f, -0.5f, -0.5f}, {1, 0, 1} },
+		{ {-0.5f, -0.5f,  0.5f}, {1, 0, 1} },
+		{ { 0.5f, -0.5f,  0.5f}, {1, 0, 1} },
+		{ { 0.5f, -0.5f, -0.5f}, {1, 0, 1} },
 	};
 
-	unsigned int indices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
+	std::vector<unsigned int> indices;
+
+	const int vertices_per_face = 4;
+	const int face_count = sizeof(vertices) / sizeof(Vertex) / vertices_per_face;
+
+	for (int f = 0; f < face_count; f++) {
+		int offset = f * vertices_per_face;
+
+		indices.push_back(offset + 0);
+		indices.push_back(offset + 1);
+		indices.push_back(offset + 2);
+
+		indices.push_back(offset + 2);
+		indices.push_back(offset + 3);
+		indices.push_back(offset + 0);
+	}
 
 	Vao vao;
 	vao.Bind();
@@ -86,7 +128,7 @@ int main(void) {
 	vbo.AddLayoutElement(3, GL_FLOAT);
 	vbo.AddLayoutElement(3, GL_FLOAT);
 
-	Ibo ibo(sizeof(indices), indices, GL_STATIC_DRAW, GL_UNSIGNED_INT);
+	Ibo ibo(sizeof(indices), indices.data(), GL_STATIC_DRAW, GL_UNSIGNED_INT);
 
 	vao.AddVboBinding(vbo);
 
@@ -105,9 +147,10 @@ int main(void) {
 	float last_time = glfwGetTime();
 	float delta_time = 0;
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 	while (!glfwWindowShouldClose(window)) {
-		Renderer::Clear(GL_COLOR_BUFFER_BIT);
+		Renderer::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		float now = glfwGetTime();
 		delta_time = now - last_time;
