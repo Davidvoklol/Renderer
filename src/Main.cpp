@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "Common/Common.hpp"
+
 int main() {
     GLFWwindow* window;
 
