@@ -13,4 +13,7 @@ class Renderer {
 				GLFWmonitor* monitor, GLFWwindow* share);
 		static void Terminate();
 
+		static int WindowShouldClose();
+		static void Clear(unsigned int mask);
+		static void Update();
 };

@@ -36,3 +36,16 @@ void Renderer::Setup(unsigned int width, unsigned int height, const char *title,
 void Renderer::Terminate() {
 	glfwTerminate();
 }
+
+int Renderer::WindowShouldClose() {
+	return glfwWindowShouldClose(window);
+}
+
+void Renderer::Clear(unsigned int mask) {
+	glClear(mask);
+}
+
+void Renderer::Update() {
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+}
