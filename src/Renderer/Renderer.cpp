@@ -1,9 +1,9 @@
 #include "Renderer.hpp"
-#include "GLFW/glfw3.h"
-#include <cstdio>
-#include <iostream>
 
-GLFWwindow* Renderer::window;
+GLFWwindow* Renderer::window = 0;
+unsigned int Renderer::shader_cache = 0;
+unsigned int Renderer::vertex_buffer_cache = 0;
+std::map<unsigned int, unsigned int> Renderer::buffer_cache;
 
 void Renderer::Setup(unsigned int width, unsigned int height, const char *title, GLFWmonitor *monitor, GLFWwindow *share) {
     if (!glfwInit()) {
@@ -48,4 +48,25 @@ void Renderer::Clear(unsigned int mask) {
 void Renderer::Update() {
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+}
+
+void Renderer::BindBuffer(unsigned int target, unsigned int id) {
+	if (buffer_cache.find(target) == buffer_cache.end() || buffer_cache[target] != id) {
+		glBindBuffer(target, id);
+		buffer_cache[target] = id;
+	}
+}
+
+void Renderer::BindVertexBuffer(unsigned int id) {
+	if (vertex_buffer_cache != id) {
+		glBindVertexArray(id);
+		vertex_buffer_cache = id;
+	}
+}
+
+void Renderer::BindShader(unsigned int id) {
+	if (shader_cache != id) {
+		glUseProgram(id);
+		shader_cache = id;
+	}
 }
