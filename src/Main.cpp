@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -7,6 +8,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Vbo/Vbo.hpp"
 #include "Ibo/Ibo.hpp"
+#include "Shader/Shader.hpp"
 
 struct Vertex {
 	glm::vec2 position;
@@ -31,6 +33,11 @@ int main() {
 
 	Vbo vbo(sizeof(veritices), veritices, GL_STATIC_DRAW, sizeof(struct Vertex));
 	Ibo ibo(sizeof(indices), indices, GL_STATIC_DRAW, GL_FLOAT);
+
+	std::filesystem::path program_path = Common::GetProgramPath();
+	std::filesystem::path shader_path = program_path.append("res/shaders");
+	
+	Shader shader(shader_path.string() + "/vertex.glsl", shader_path.string() + "/fragment.glsl");
 
     while (!Renderer::WindowShouldClose()) {
 		Renderer::Clear(GL_COLOR_BUFFER_BIT);
