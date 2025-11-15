@@ -5,6 +5,7 @@ Ibo::Ibo(unsigned int size, const void* data, unsigned int usage, unsigned int t
 	Bind();
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, usage);
 	this->type = type;
+	this->count = size / Common::GetGlTypeSize(type);
 }
 
 Ibo::~Ibo() {
@@ -17,4 +18,8 @@ void Ibo::Bind() const {
 
 unsigned int Ibo::GetType() const {
 	return type;
+}
+
+unsigned int Ibo::GetCount() const {
+	return count;
 }
