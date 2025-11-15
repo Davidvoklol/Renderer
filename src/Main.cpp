@@ -6,6 +6,7 @@
 #include "Common/Common.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Vbo/Vbo.hpp"
+#include "Ibo/Ibo.hpp"
 
 struct Vertex {
 	glm::vec2 position;
@@ -23,7 +24,13 @@ int main() {
 		{{ -0.5,  0.5 }}
 	};
 
+	unsigned int indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
 	Vbo vbo(sizeof(veritices), veritices, GL_STATIC_DRAW, sizeof(struct Vertex));
+	Ibo ibo(sizeof(indices), indices, GL_STATIC_DRAW, GL_FLOAT);
 
     while (!Renderer::WindowShouldClose()) {
 		Renderer::Clear(GL_COLOR_BUFFER_BIT);
